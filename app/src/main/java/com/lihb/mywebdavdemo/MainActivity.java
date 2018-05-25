@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 Request request = new Request.Builder()
-                        .url("https://dav.jianguoyun.com/dav")
+                        .url("https://dav.jianguoyun.com/dav/%e6%88%91%e7%9a%84%e5%9d%9a%e6%9e%9c%e4%ba%91/")
                         .addHeader("Authorization", value)
 //                        .addHeader("Content-Type", "Mozilla/5.0 (Android) ownCloud-android/2.7.0")
                         .method("PROPFIND", null)
@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
                                 Document document = DomUtil.parseDocument(in);
                                 MultiStatus xml = MultiStatus.createFromXml(document.getDocumentElement());
                                 Status[] status = xml.getResponses()[0].getStatus();
+                                DavResumeModel davResumeModel = DavResumeModel.create(xml);
                                 Log.i(TAG, "onResponse: ");
 //                                xml.getResponses()[0]
                             } catch (ParserConfigurationException e) {
