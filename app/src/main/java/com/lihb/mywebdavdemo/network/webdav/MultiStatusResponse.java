@@ -30,9 +30,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * <code>MultiStatusResponse</code> represents the DAV:multistatus element defined
@@ -97,134 +95,6 @@ public class MultiStatusResponse implements XmlSerializable, DavConstants {
             throw new IllegalArgumentException("Status must not be null in case of a multistatus reponse that consists of href + status only.");
         }
         this.status = status;
-    }
-
-    /**
-     * Constructs an WebDAV multistatus response for a given resource. This
-     * would be used by COPY, MOVE, DELETE, LOCK that require a multistatus in
-     * case of error with a resource other than the resource identified in the
-     * Request-URI.<br>
-     * The response description is set to <code>null</code>.
-     *
-     * @param href
-     * @param statusCode
-     */
-    public MultiStatusResponse(String href, int statusCode) {
-        this(href, statusCode, null);
-    }
-
-    /**
-     * Constructs an WebDAV multistatus response for a given resource. This
-     * would be used by COPY, MOVE, DELETE, LOCK that require a multistatus in
-     * case of error with a resource other than the resource identified in the
-     * Request-URI.
-     *
-     * @param href
-     * @param statusCode
-     * @param responseDescription
-     */
-    public MultiStatusResponse(String href, int statusCode, String responseDescription) {
-        this(href, new Status(statusCode), responseDescription);
-    }
-
-    /**
-     * Constructs an empty WebDAV multistatus response of type 'PropStat'
-     */
-    public MultiStatusResponse(String href, String responseDescription) {
-        this(href, responseDescription, TYPE_PROPSTAT);
-    }
-
-    /**
-     * Constructs a WebDAV multistatus response and retrieves the resource
-     * properties according to the given <code>DavPropertyNameSet</code>.
-     *
-     * @param resource
-     * @param propNameSet
-     */
-    public MultiStatusResponse(DavResource resource, DavPropertyNameSet propNameSet) {
-        this(resource, propNameSet, PROPFIND_BY_PROPERTY);
-    }
-
-    /**
-     * Constructs a WebDAV multistatus response and retrieves the resource
-     * properties according to the given <code>DavPropertyNameSet</code>. It
-     * adds all known property to the '200' set, while unknown properties are
-     * added to the '404' set.
-     * <p>
-     * Note, that the set of property names is ignored in case of a {@link
-     * #PROPFIND_ALL_PROP} and {@link #PROPFIND_PROPERTY_NAMES} propFindType.
-     *
-     * @param resource The resource to retrieve the property from
-     * @param propNameSet The property name set as obtained from the request
-     * body.
-     * @param propFindType any of the following values: {@link
-     * #PROPFIND_ALL_PROP}, {@link #PROPFIND_BY_PROPERTY}, {@link
-     * #PROPFIND_PROPERTY_NAMES}, {@link #PROPFIND_ALL_PROP_INCLUDE}
-     */
-    public MultiStatusResponse(
-            DavResource resource, DavPropertyNameSet propNameSet,
-            int propFindType) {
-        this(resource.getHref(), null, TYPE_PROPSTAT);
-
-        if (propFindType == PROPFIND_PROPERTY_NAMES) {
-            // only property names requested
-            PropContainer status200 = getPropContainer(DavServletResponse.SC_OK, true);
-            for (DavPropertyName propName : resource.getPropertyNames()) {
-                status200.addContent(propName);
-            }
-        } else {
-            // all or a specified set of property and their values requested.
-            PropContainer status200 = getPropContainer(DavServletResponse.SC_OK, false);
-
-            // Collection of missing property names for 404 responses
-            Set<DavPropertyName> missing = new HashSet<DavPropertyName>(propNameSet.getContent());
-
-            // Add requested properties or all non-protected properties,
-            // or non-protected properties plus requested properties (allprop/include)
-            if (propFindType == PROPFIND_BY_PROPERTY) {
-                // add explicitly requested properties (proptected or non-protected)
-                for (DavPropertyName propName : propNameSet) {
-                    DavProperty<?> prop = resource.getProperty(propName);
-                    if (prop != null) {
-                        status200.addContent(prop);
-                        missing.remove(propName);
-                    }
-                }
-            } else {
-                // add all non-protected properties
-                for (DavProperty<?> property : resource.getProperties()) {
-                    boolean allDeadPlusRfc4918LiveProperties =
-                        propFindType == PROPFIND_ALL_PROP
-                        || propFindType == PROPFIND_ALL_PROP_INCLUDE;
-                    boolean wasRequested = missing.remove(property.getName());
-
-                    if ((allDeadPlusRfc4918LiveProperties
-                            && !property.isInvisibleInAllprop())
-                            || wasRequested) {
-                        status200.addContent(property);
-                    }
-                }
-
-                // try if missing properties specified in the include section
-                // can be obtained using resource.getProperty
-                if (propFindType == PROPFIND_ALL_PROP_INCLUDE && !missing.isEmpty()) {
-                    for (DavPropertyName propName : new HashSet<DavPropertyName>(missing)) {
-                        DavProperty<?> prop = resource.getProperty(propName);
-                        if (prop != null) {
-                            status200.addContent(prop);
-                            missing.remove(propName);
-                        }
-                    }
-                }
-            }
-
-            if (!missing.isEmpty() && propFindType != PROPFIND_ALL_PROP) {
-                PropContainer status404 = getPropContainer(DavServletResponse.SC_NOT_FOUND, true);
-                for (DavPropertyName propName : missing) {
-                    status404.addContent(propName);
-                }
-            }
-        }
     }
 
     /**

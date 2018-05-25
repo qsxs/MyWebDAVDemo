@@ -16,7 +16,6 @@
  */
 package com.lihb.mywebdavdemo.network.webdav;
 
-import com.lihb.mywebdavdemo.network.webdav.property.DavPropertyNameSet;
 import com.lihb.mywebdavdemo.network.webdav.xml.DomUtil;
 import com.lihb.mywebdavdemo.network.webdav.xml.ElementIterator;
 import com.lihb.mywebdavdemo.network.webdav.xml.XmlSerializable;
@@ -49,25 +48,25 @@ public class MultiStatus implements DavConstants, XmlSerializable {
      */
     private String responseDescription;
 
-    /**
-     * Add response(s) to this multistatus, in order to build a multistatus for
-     * responding to a PROPFIND request.
-     *
-     * @param resource The resource to add property from
-     * @param propNameSet The requested property names of the PROPFIND request
-     * @param propFindType
-     * @param depth
-     */
-    public void addResourceProperties(DavResource resource, DavPropertyNameSet propNameSet,
-                                      int propFindType, int depth) {
-        addResponse(new MultiStatusResponse(resource, propNameSet, propFindType));
-        if (depth > 0 && resource.isCollection()) {
-            DavResourceIterator iter = resource.getMembers();
-            while (iter.hasNext()) {
-                addResourceProperties(iter.nextResource(), propNameSet, propFindType, depth-1);
-            }
-        }
-    }
+//    /**
+//     * Add response(s) to this multistatus, in order to build a multistatus for
+//     * responding to a PROPFIND request.
+//     *
+//     * @param resource The resource to add property from
+//     * @param propNameSet The requested property names of the PROPFIND request
+//     * @param propFindType
+//     * @param depth
+//     */
+//    public void addResourceProperties(DavResource resource, DavPropertyNameSet propNameSet,
+//                                      int propFindType, int depth) {
+//        addResponse(new MultiStatusResponse(resource, propNameSet, propFindType));
+//        if (depth > 0 && resource.isCollection()) {
+//            DavResourceIterator iter = resource.getMembers();
+//            while (iter.hasNext()) {
+//                addResourceProperties(iter.nextResource(), propNameSet, propFindType, depth-1);
+//            }
+//        }
+//    }
 
 //    /**
 //     * Add response(s) to this multistatus, in order to build a multistatus e.g.
