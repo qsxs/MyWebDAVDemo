@@ -1,4 +1,5 @@
 public class BaseModel {
+    public static final String METHODS = "OPTIONS, GET, HEAD, POST, TRACE, PROPFIND, PROPPATCH, MKCOL, COPY, PUT, DELETE, MOVE, LOCK, UNLOCK";
 
     private ResponsesBean response;
 

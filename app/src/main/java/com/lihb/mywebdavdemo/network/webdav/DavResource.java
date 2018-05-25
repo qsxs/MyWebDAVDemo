@@ -17,8 +17,6 @@
 package com.lihb.mywebdavdemo.network.webdav;
 
 
-import com.lihb.mywebdavdemo.network.webdav.lock.ActiveLock;
-import com.lihb.mywebdavdemo.network.webdav.lock.LockInfo;
 import com.lihb.mywebdavdemo.network.webdav.property.DavProperty;
 
 /**
@@ -74,16 +72,7 @@ public interface DavResource {
     public void copy(DavResource destination, boolean shallow) throws DavException;
 
 
-    /**
-     * Lock this webdav resource with the information retrieve from the request
-     * and return the resulting lockdiscovery object.
-     *
-     * @param reqLockInfo lock info as retrieved from the request.
-     * @return lockdiscovery object to be returned in the response. If the lock
-     * could not be obtained a <code>DavException</code> is thrown.
-     * @throws DavException if the lock could not be obtained.
-     */
-    public ActiveLock lock(LockInfo reqLockInfo) throws DavException;
+
 
 }
 
