@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<multistatus>
+    <response>
+        <href>/dav/</href>
+        <propstat>
+            <prop>
+                <getlastmodified>Fri, 18 May 2018 08:25:19 GMT</getlastmodified>
+                <getcontentlength>0</getcontentlength>
+                <owner>18218601735@139.com</owner>
+                <current-user-privilege-set>
+                    <privilege>
+                        <read />
+                    </privilege>
+                </current-user-privilege-set>
+                <getcontenttype>httpd/unix-directory</getcontenttype>
+                <displayname>dav</displayname>
+                <resourcetype>
+                    <collection />
+                </resourcetype>
+            </prop>
+            <status>HTTP/1.1 200 OK</status>
+        </propstat>
+    </response>
+    <response>
+        <href>/dav/%e6%88%91%e7%9a%84%e5%9d%9a%e6%9e%9c%e4%ba%91/</href>
+        <propstat>
+            <prop>
+                <getlastmodified>Fri, 18 May 2018 08:25:19 GMT</getlastmodified>
+                <getcontentlength>0</getcontentlength>
+                <owner>18218601735@139.com</owner>
+                <current-user-privilege-set>
+                    <privilege>
+                        <read />
+                    </privilege>
+                    <privilege>
+                        <write />
+                    </privilege>
+                    <privilege>
+                        <all />
+                    </privilege>
+                    <privilege>
+                        <read_acl />
+                    </privilege>
+                    <privilege>
+                        <write_acl />
+                    </privilege>
+                </current-user-privilege-set>
+                <getcontenttype>httpd/unix-directory</getcontenttype>
+                <displayname>我的坚果云</displayname>
+                <resourcetype>
+                    <collection />
+                </resourcetype>
+            </prop>
+            <status>HTTP/1.1 200 OK</status>
+        </propstat>
+    </response>
+</multistatus>
