@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,10 +35,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
-    OkHttpClient okHttpClient;
     TextView tv;
+    Button btnUpload;
+    OkHttpClient okHttpClient;
     String value;
     RecyclerView list;
     FileListAdapter adapter;
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tv = findViewById(R.id.tv);
+        btnUpload = findViewById(R.id.btn_upload);
         list = findViewById(R.id.list);
         adapter = new FileListAdapter();
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -62,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         });
         list.setAdapter(adapter);
 
+        btnUpload.setOnClickListener(this);
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -165,5 +169,16 @@ public class MainActivity extends AppCompatActivity {
                 .cache(cache)
                 .build();
 
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_upload:
+
+                break;
+            default:
+                break;
+        }
     }
 }

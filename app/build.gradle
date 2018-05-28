@@ -2,14 +2,28 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 27
+
+    signingConfigs {
+        demo {
+            v1SigningEnabled true
+            v2SigningEnabled true
+            storeFile file("demo.jks")
+            storePassword '123456'
+            keyAlias 'key'
+            keyPassword '123456'
+        }
+    }
+
     defaultConfig {
         applicationId "com.lihb.mywebdavdemo"
         minSdkVersion 14
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+        signingConfig signingConfigs.demo
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
