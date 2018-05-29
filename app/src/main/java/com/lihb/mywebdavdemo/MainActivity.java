@@ -1,6 +1,8 @@
 package com.lihb.mywebdavdemo;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +18,8 @@ import com.lihb.mywebdavdemo.network.webdav.MultiStatus;
 import com.lihb.mywebdavdemo.network.webdav.Status;
 import com.lihb.mywebdavdemo.network.webdav.xml.DomUtil;
 import com.lihb.mywebdavdemo.utils.Base64Util;
+import com.lihb.mywebdavdemo.utils.FileUtil;
+import com.lihb.mywebdavdemo.utils.UriUtil;
 
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -31,8 +35,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import okhttp3.Cache;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -59,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (item.isDir()) {
                     getData(item.getHref());
                 } else {
+                    download(item.getHref());
                     Toast.makeText(MainActivity.this, item.getDisplayname(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -85,6 +92,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         value = "Basic " + Base64Util.encode(KeyConfig.WEBDAV_USERNAME + ":" + KeyConfig.WEBDAV_PASSWORD);
 
         getData("/dav/");
+    }
+
+    private void download(final String path) {
+        Request request = new Request.Builder()
+                .url("https://dav.jianguoyun.com" + path)
+                .addHeader("Authorization", value)
+                .get()
+                .build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.i(TAG, "onFailure: ");
+            }
+
+            @Override
+            public void onResponse(Call call, final okhttp3.Response response) throws IOException {
+                Log.i(TAG, "onResponse: ");
+                if (!response.isSuccessful()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return;
+                }else {
+                    FileUtil.writeFile(response.body().byteStream(),
+                            Environment.getExternalStorageDirectory()
+                                    + File.separator
+                                    + App.context().getString(R.string.app_name)
+                                    + path);
+                    Toast.makeText(MainActivity.this, "下载文件成功", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void getData(final String path) {
@@ -175,10 +217,60 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_upload:
-
+                startPickerFile();
                 break;
             default:
                 break;
+        }
+    }
+
+    static int REQUEST_FILE_CODE = 1024;
+
+    private void startPickerFile() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, REQUEST_FILE_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_FILE_CODE && resultCode == RESULT_OK) {
+            String pathFromUri = UriUtil.getPathFromUri(MainActivity.this, data.getData());
+
+            File file = new File(pathFromUri);
+            RequestBody body = RequestBody.create(MediaType.parse("text/plain"), file);
+            Request request = new Request.Builder()
+                    .url("https://dav.jianguoyun.com" + tv.getText() + file.getName())
+                    .addHeader("Authorization", value)
+                    .put(body)
+                    .build();
+            okHttpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.i(TAG, "onFailure: ");
+                }
+
+                @Override
+                public void onResponse(Call call, final okhttp3.Response response) throws IOException {
+                    Log.i(TAG, "onResponse: " + response.body().string());
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!response.isSuccessful()) {
+                                Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
+                            }else {
+                                // TODO: 2018/5/29 上传 成功，后续应该PROPFIND确认一下
+                                Toast.makeText(MainActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+
+                }
+            });
         }
     }
 }
