@@ -1,8 +1,9 @@
 package com.lihb.mywebdavdemo.network;
 
 import io.reactivex.Observable;
+import okhttp3.ResponseBody;
 import retrofit2.Response;
-import retrofit2.http.GET;
+import retrofit2.http.HTTP;
 
 /**
  * 所有接口集中管理
@@ -24,8 +25,8 @@ public interface IApi {
      *
      * @return
      */
-    @GET("https://dav.jianguoyun.com/dav/")
-    Observable<Response> propfind();
+    @HTTP(method = "PROPFIND", path = "https://dav.jianguoyun.com/dav/", hasBody = false)
+    Observable<Response<ResponseBody>> propfind();
 
 
 }

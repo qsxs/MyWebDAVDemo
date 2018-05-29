@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.lihb.mywebdavdemo.network.IApi;
+import com.lihb.mywebdavdemo.network.NetworkManager;
 import com.lihb.mywebdavdemo.network.webdav.MultiStatus;
 import com.lihb.mywebdavdemo.network.webdav.Status;
 import com.lihb.mywebdavdemo.network.webdav.xml.DomUtil;
@@ -32,6 +33,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.observers.DefaultObserver;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Cache;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -39,7 +43,9 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
                     return;
-                }else {
+                } else {
                     FileUtil.writeFile(response.body().byteStream(),
                             Environment.getExternalStorageDirectory()
                                     + File.separator
@@ -130,65 +136,122 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void getData(final String path) {
-        Request request = new Request.Builder()
-                .url("https://dav.jianguoyun.com" + path)
-                .addHeader("Authorization", value)
-                .method("PROPFIND", null)
-                .build();
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.i(TAG, "onFailure: ");
-            }
 
-            @Override
-            public void onResponse(Call call, final okhttp3.Response response) throws IOException {
-                Log.i(TAG, "onResponse: ");
-                if (!response.isSuccessful()) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    return;
-                }
-                InputStream in = response.body().byteStream();
-                if (in != null) {
-                    // read response and try to build a xml document
-                    try {
-                        Document document = DomUtil.parseDocument(in);
-                        MultiStatus xml = MultiStatus.createFromXml(document.getDocumentElement());
-                        Status[] status = xml.getResponses()[0].getStatus();
-                        final DavResumeModel davResumeModel = DavResumeModel.create(xml);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tv.setText(path);
-                                List<DavResumeModel.ResponsesBean> responses = davResumeModel.getResponses();
-                                adapter.setNewData(responses.subList(1, responses.size()));
-                            }
-                        });
-                        Log.i(TAG, "onResponse: ");
+        NetworkManager.getApiService()
+                .propfind()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new DefaultObserver<Response<ResponseBody>>() {
+                    @Override
+                    public void onNext(Response<ResponseBody> response) {
+                        Log.i(TAG, "onNext: ");
+                        InputStream in = response.body().byteStream();
+                        if (in != null) {
+                            // read response and try to build a xml document
+                            try {
+                                Document document = DomUtil.parseDocument(in);
+                                MultiStatus xml = MultiStatus.createFromXml(document.getDocumentElement());
+                                Status[] status = xml.getResponses()[0].getStatus();
+                                final DavResumeModel davResumeModel = DavResumeModel.create(xml);
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        tv.setText(path);
+                                        List<DavResumeModel.ResponsesBean> responses = davResumeModel.getResponses();
+                                        adapter.setNewData(responses.subList(1, responses.size()));
+                                    }
+                                });
+                                Log.i(TAG, "onResponse: ");
 //                                xml.getResponses()[0]
-                    } catch (ParserConfigurationException e) {
-                        IOException exception =
-                                new IOException("XML parser configuration error");
-                        exception.initCause(e);
-                        throw exception;
-                    } catch (SAXException e) {
-                        IOException exception = new IOException("XML parsing error");
-                        exception.initCause(e);
-                        throw exception;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw e;
-                    } finally {
-                        in.close();
+                            } catch (ParserConfigurationException e) {
+                                IOException exception =
+                                        new IOException("XML parser configuration error");
+                                exception.initCause(e);
+                            } catch (SAXException e) {
+                                IOException exception = new IOException("XML parsing error");
+                                exception.initCause(e);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            } finally {
+                                try {
+                                    in.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                     }
-                }
-            }
-        });
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.i(TAG, "onError: ");
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.i(TAG, "onComplete: ");
+                    }
+                });
+
+//        Request request = new Request.Builder()
+//                .url("https://dav.jianguoyun.com" + path)
+//                .addHeader("Authorization", value)
+//                .method("PROPFIND", null)
+//                .build();
+//        okHttpClient.newCall(request).enqueue(new Callback() {
+//            @Override
+//            public void onFailure(Call call, IOException e) {
+//                Log.i(TAG, "onFailure: ");
+//            }
+//
+//            @Override
+//            public void onResponse(Call call, final okhttp3.Response response) throws IOException {
+//                Log.i(TAG, "onResponse: ");
+//                if (!response.isSuccessful()) {
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
+//                        }
+//                    });
+//                    return;
+//                }
+//                InputStream in = response.body().byteStream();
+//                if (in != null) {
+//                    // read response and try to build a xml document
+//                    try {
+//                        Document document = DomUtil.parseDocument(in);
+//                        MultiStatus xml = MultiStatus.createFromXml(document.getDocumentElement());
+//                        Status[] status = xml.getResponses()[0].getStatus();
+//                        final DavResumeModel davResumeModel = DavResumeModel.create(xml);
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                tv.setText(path);
+//                                List<DavResumeModel.ResponsesBean> responses = davResumeModel.getResponses();
+//                                adapter.setNewData(responses.subList(1, responses.size()));
+//                            }
+//                        });
+//                        Log.i(TAG, "onResponse: ");
+////                                xml.getResponses()[0]
+//                    } catch (ParserConfigurationException e) {
+//                        IOException exception =
+//                                new IOException("XML parser configuration error");
+//                        exception.initCause(e);
+//                        throw exception;
+//                    } catch (SAXException e) {
+//                        IOException exception = new IOException("XML parsing error");
+//                        exception.initCause(e);
+//                        throw exception;
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        throw e;
+//                    } finally {
+//                        in.close();
+//                    }
+//                }
+//            }
+//        });
     }
 
     private void initOkHttp() {
@@ -261,7 +324,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         public void run() {
                             if (!response.isSuccessful()) {
                                 Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
-                            }else {
+                            } else {
                                 // TODO: 2018/5/29 上传 成功，后续应该PROPFIND确认一下
                                 Toast.makeText(MainActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
                             }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lihb.mywebdavdemo.App;
 import com.lihb.mywebdavdemo.KeyConfig;
+import com.lihb.mywebdavdemo.utils.Base64Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,6 @@ import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * 请求网络类
@@ -58,7 +58,7 @@ public class NetworkManager {
 
         retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
+//                .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(IApi.BASE_URL)
                 .build();
@@ -105,7 +105,7 @@ public class NetworkManager {
 //                LogUtil.si("NetworkManager", "token:" + token);
 //            }
             request = builder
-                    .addHeader("Authorization", KeyConfig.WEBDAV_USERNAME + ":" + KeyConfig.WEBDAV_PASSWORD)
+                    .addHeader("Authorization", "Basic " + Base64Util.encode(KeyConfig.WEBDAV_USERNAME + ":" + KeyConfig.WEBDAV_PASSWORD))
                     .build();
 
             Response originalResponse = chain.proceed(request);
