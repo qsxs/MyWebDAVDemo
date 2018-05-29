@@ -1,8 +1,8 @@
 package com.lihb.mywebdavdemo.network;
 
+import com.lihb.mywebdavdemo.network.webdav.MultiStatus;
+
 import io.reactivex.Observable;
-import okhttp3.ResponseBody;
-import retrofit2.Response;
 import retrofit2.http.HTTP;
 
 /**
@@ -26,7 +26,7 @@ public interface IApi {
      * @return
      */
     @HTTP(method = "PROPFIND", path = "https://dav.jianguoyun.com/dav/", hasBody = false)
-    Observable<Response<ResponseBody>> propfind();
+    Observable<MultiStatus> propfind();
 
 
 }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lihb.mywebdavdemo.App;
 import com.lihb.mywebdavdemo.KeyConfig;
+import com.lihb.mywebdavdemo.network.webdav.WebDavConverterFactory;
 import com.lihb.mywebdavdemo.utils.Base64Util;
 
 import java.io.File;
@@ -59,6 +60,7 @@ public class NetworkManager {
         retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
 //                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addConverterFactory(WebDavConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(IApi.BASE_URL)
                 .build();

@@ -16,22 +16,13 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.lihb.mywebdavdemo.network.IApi;
 import com.lihb.mywebdavdemo.network.NetworkManager;
 import com.lihb.mywebdavdemo.network.webdav.MultiStatus;
-import com.lihb.mywebdavdemo.network.webdav.Status;
-import com.lihb.mywebdavdemo.network.webdav.xml.DomUtil;
 import com.lihb.mywebdavdemo.utils.Base64Util;
 import com.lihb.mywebdavdemo.utils.FileUtil;
 import com.lihb.mywebdavdemo.utils.UriUtil;
 
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.observers.DefaultObserver;
@@ -43,9 +34,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
@@ -141,45 +130,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .propfind()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new DefaultObserver<Response<ResponseBody>>() {
+                .subscribe(new DefaultObserver<MultiStatus>() {
                     @Override
-                    public void onNext(Response<ResponseBody> response) {
+                    public void onNext(MultiStatus response) {
                         Log.i(TAG, "onNext: ");
-                        InputStream in = response.body().byteStream();
-                        if (in != null) {
-                            // read response and try to build a xml document
-                            try {
-                                Document document = DomUtil.parseDocument(in);
-                                MultiStatus xml = MultiStatus.createFromXml(document.getDocumentElement());
-                                Status[] status = xml.getResponses()[0].getStatus();
-                                final DavResumeModel davResumeModel = DavResumeModel.create(xml);
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        tv.setText(path);
-                                        List<DavResumeModel.ResponsesBean> responses = davResumeModel.getResponses();
-                                        adapter.setNewData(responses.subList(1, responses.size()));
-                                    }
-                                });
-                                Log.i(TAG, "onResponse: ");
-//                                xml.getResponses()[0]
-                            } catch (ParserConfigurationException e) {
-                                IOException exception =
-                                        new IOException("XML parser configuration error");
-                                exception.initCause(e);
-                            } catch (SAXException e) {
-                                IOException exception = new IOException("XML parsing error");
-                                exception.initCause(e);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                try {
-                                    in.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
                     }
 
                     @Override
