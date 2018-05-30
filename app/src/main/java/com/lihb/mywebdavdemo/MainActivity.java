@@ -1,14 +1,18 @@
 package com.lihb.mywebdavdemo;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,21 +48,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String value;
     RecyclerView list;
     FileListAdapter adapter;
+    Context mContext;
+    EditText et;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mContext = this;
         tv = findViewById(R.id.tv);
         btnUpload = findViewById(R.id.btn_upload);
         list = findViewById(R.id.list);
+        et = findViewById(R.id.et);
         adapter = new FileListAdapter();
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
                 DavResumeModel.ResponsesBean item = adapter.getItem(position);
                 if (item.isDir()) {
-                    getData(item.getHref());
+                    propfind(item.getHref());
                 } else {
                     download(item.getHref());
                     Toast.makeText(MainActivity.this, item.getDisplayname(), Toast.LENGTH_SHORT).show();
@@ -68,26 +76,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.setAdapter(adapter);
 
         btnUpload.setOnClickListener(this);
-        findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    String s = tv.getText().toString();
-                    String substring1 = s.substring(0, s.length() - 1);
-                    String substring = substring1.substring(0, substring1.lastIndexOf("/"));
-                    getData(substring);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    getData("/dav/");
-                    Toast.makeText(MainActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        findViewById(R.id.btn).setOnClickListener(this);
+        findViewById(R.id.btn_new_dir).setOnClickListener(this);
 
         initOkHttp();
         value = "Basic " + Base64Util.encode(KeyConfig.WEBDAV_USERNAME + ":" + KeyConfig.WEBDAV_PASSWORD);
 
-        getData("/dav/");
+        propfind("/dav/");
     }
 
     private void download(final String path) {
@@ -130,7 +125,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void getData(final String path) {
+    private void upload(Uri data) {
+
+        String pathFromUri = UriUtil.getPathFromUri(MainActivity.this, data);
+
+        File file = new File(pathFromUri);
+        RequestBody body = RequestBody.create(MediaType.parse("text/plain"), file);
+        Request request = new Request.Builder()
+                .url("https://dav.jianguoyun.com" + tv.getText() + file.getName())
+                .addHeader("Authorization", value)
+                .put(body)
+                .build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.i(TAG, "onFailure: ");
+            }
+
+            @Override
+            public void onResponse(Call call, final okhttp3.Response response) throws IOException {
+                Log.i(TAG, "onResponse: " + response.body().string());
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!response.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
+                        } else {
+                            // TODO: 2018/5/29 上传 成功，后续应该PROPFIND确认一下
+                            Toast.makeText(MainActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+
+            }
+        });
+    }
+
+    private void propfind(final String path) {
 
         NetworkManager.getApiService()
                 .propfind(path)
@@ -217,6 +250,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        });
     }
 
+    private void createDir(String dirName) {
+        NetworkManager.getApiService()
+                .mkol(tv.getText().toString() + dirName)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new DefaultObserver<DavResumeModel>() {
+                    @Override
+                    public void onNext(DavResumeModel davResumeModel) {
+                        Log.i(TAG, "onNext: ");
+                        propfind(tv.getText().toString());
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.i(TAG, "onError: ");
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.i(TAG, "onComplete: ");
+                    }
+                });
+    }
+
     private void initOkHttp() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
@@ -242,8 +299,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.btn:
+                try {
+                    String s = tv.getText().toString();
+                    String substring1 = s.substring(0, s.length() - 1);
+                    String substring = substring1.substring(0, substring1.lastIndexOf("/"));
+                    propfind(substring);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    propfind("/dav/");
+                    Toast.makeText(MainActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                }
+                break;
             case R.id.btn_upload:
                 startPickerFile();
+                break;
+            case R.id.btn_new_dir:
+                if (!TextUtils.isEmpty(et.getText())) {
+                    createDir(et.getText().toString());
+                }
                 break;
             default:
                 break;
@@ -263,40 +337,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_FILE_CODE && resultCode == RESULT_OK) {
-            String pathFromUri = UriUtil.getPathFromUri(MainActivity.this, data.getData());
-
-            File file = new File(pathFromUri);
-            RequestBody body = RequestBody.create(MediaType.parse("text/plain"), file);
-            Request request = new Request.Builder()
-                    .url("https://dav.jianguoyun.com" + tv.getText() + file.getName())
-                    .addHeader("Authorization", value)
-                    .put(body)
-                    .build();
-            okHttpClient.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Log.i(TAG, "onFailure: ");
-                }
-
-                @Override
-                public void onResponse(Call call, final okhttp3.Response response) throws IOException {
-                    Log.i(TAG, "onResponse: " + response.body().string());
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!response.isSuccessful()) {
-                                Toast.makeText(MainActivity.this, "请求失败", Toast.LENGTH_SHORT).show();
-                            } else {
-                                // TODO: 2018/5/29 上传 成功，后续应该PROPFIND确认一下
-                                Toast.makeText(MainActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-
-
-                }
-            });
+            upload(data.getData());
         }
     }
 }

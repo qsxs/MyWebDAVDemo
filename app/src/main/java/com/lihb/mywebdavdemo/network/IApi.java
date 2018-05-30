@@ -21,13 +21,13 @@ public interface IApi {
     String BASE_IMG_URL = "http://47.52.167.12:25000";
     String BASE_URL = "https://dav.jianguoyun.com/";
 
-    /**
-     * 首页广告
-     *
-     * @return
-     */
     @HTTP(method = "PROPFIND")
     Observable<DavResumeModel> propfind(
+            @Url String url
+    );
+
+    @HTTP(method = "MKCOL")
+    Observable<DavResumeModel> mkol(
             @Url String url
     );
 

@@ -1,5 +1,7 @@
 package com.lihb.mywebdavdemo.network;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.lihb.mywebdavdemo.App;
@@ -39,7 +41,7 @@ public class NetworkManager {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
             @Override
             public void log(String message) {
-//                LogUtil.si("NetworkManager", message);
+                Log.i("NetworkManager", message);
             }
         });
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
