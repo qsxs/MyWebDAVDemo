@@ -38,7 +38,9 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "MainActivity";
@@ -73,6 +75,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+
+        adapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
+                DavResumeModel.ResponsesBean item = adapter.getItem(position);
+                Toast.makeText(mContext, "准备删除："+item.getDisplayname(), Toast.LENGTH_SHORT).show();
+                delete(item);
+                return true;
+            }
+        });
         list.setAdapter(adapter);
 
         btnUpload.setOnClickListener(this);
@@ -83,6 +95,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         value = "Basic " + Base64Util.encode(KeyConfig.WEBDAV_USERNAME + ":" + KeyConfig.WEBDAV_PASSWORD);
 
         propfind("/dav/");
+    }
+
+    private void delete(DavResumeModel.ResponsesBean item) {
+        NetworkManager.getApiService()
+                .delete(item.getHref())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new DefaultObserver<Response<ResponseBody>>() {
+                    @Override
+                    public void onNext(Response<ResponseBody> responseBodyResponse) {
+                        Log.i(TAG, "onNext: ");
+                        if (responseBodyResponse.isSuccessful()) {
+                            propfind(tv.getText().toString());
+                            Toast.makeText(mContext, "删除成功", Toast.LENGTH_SHORT).show();
+                        }else {
+                            Toast.makeText(mContext, "删除失败", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.i(TAG, "onError: ");
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.i(TAG, "onComplete: ");
+                    }
+                });
     }
 
     private void download(final String path) {

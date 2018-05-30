@@ -4,6 +4,8 @@ import com.lihb.mywebdavdemo.DavResumeModel;
 
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
+import retrofit2.Response;
+import retrofit2.http.DELETE;
 import retrofit2.http.HTTP;
 import retrofit2.http.Url;
 
@@ -32,5 +34,9 @@ public interface IApi {
             @Url String url
     );
 
+    @DELETE
+    Observable<Response<ResponseBody>> delete(
+            @Url String url
+    );
 
 }

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DavResumeModel {
-    public static final String METHODS = "OPTIONS, GET, HEAD, POST, TRACE, PROPFIND, PROPPATCH, MKCOL, COPY, PUT, DELETE, MOVE, LOCK, UNLOCK";
+    public static final String METHODS = "DELETE, GET, LOCK, UNLOCK, MKCOL, MOVE, OPTIONS, PROPFIND, PUT, COPY";
 
     public static DavResumeModel create(MultiStatus multiStatus) {
         DavResumeModel davResumeModel = new DavResumeModel();
