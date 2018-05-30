@@ -251,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void createDir(String dirName) {
+        // TODO: 2018/5/30 0030 应该先propfind查询文件夹是否已经存在
         NetworkManager.getApiService()
                 .mkol(tv.getText().toString() + dirName)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onNext(Object davResumeModel) {
                         Log.i(TAG, "onNext: ");
-
+                        // TODO: 2018/5/30 0030 应该先propfind查询是否确定新建成功
                         propfind(tv.getText().toString());
                     }
 
