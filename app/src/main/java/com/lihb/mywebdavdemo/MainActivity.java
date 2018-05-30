@@ -15,13 +15,13 @@ import android.widget.Toast;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.lihb.mywebdavdemo.network.IApi;
 import com.lihb.mywebdavdemo.network.NetworkManager;
-import com.lihb.mywebdavdemo.network.webdav.MultiStatus;
 import com.lihb.mywebdavdemo.utils.Base64Util;
 import com.lihb.mywebdavdemo.utils.FileUtil;
 import com.lihb.mywebdavdemo.utils.UriUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     getData(substring);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    getData("/dav/");
                     Toast.makeText(MainActivity.this, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -118,7 +119,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     + File.separator
                                     + App.context().getString(R.string.app_name)
                                     + path);
-                    Toast.makeText(MainActivity.this, "下载文件成功", Toast.LENGTH_SHORT).show();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "下载文件成功", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
         });
@@ -127,13 +133,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void getData(final String path) {
 
         NetworkManager.getApiService()
-                .propfind()
+                .propfind(path)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new DefaultObserver<MultiStatus>() {
+                .subscribe(new DefaultObserver<DavResumeModel>() {
                     @Override
-                    public void onNext(MultiStatus response) {
+                    public void onNext(DavResumeModel response) {
                         Log.i(TAG, "onNext: ");
+                        tv.setText(path);
+                        List<DavResumeModel.ResponsesBean> responses = response.getResponses();
+                        adapter.setNewData(responses.subList(1, responses.size()));
                     }
 
                     @Override

@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class FileTypeUtil {
@@ -118,10 +117,8 @@ public class FileTypeUtil {
 
 
             //这种方法在字典的头代码不够位数的时候可以用但是速度相对慢一点
-            Iterator<String> keyIter = FILE_TYPE_MAP.keySet().iterator();
-            while(keyIter.hasNext()){
-                String key = keyIter.next();
-                if(key.toLowerCase().startsWith(fileCode.toLowerCase()) || fileCode.toLowerCase().startsWith(key.toLowerCase())){
+            for (String key : FILE_TYPE_MAP.keySet()) {
+                if (key.toLowerCase().startsWith(fileCode.toLowerCase()) || fileCode.toLowerCase().startsWith(key.toLowerCase())) {
                     res = FILE_TYPE_MAP.get(key);
                     break;
                 }
@@ -134,15 +131,5 @@ public class FileTypeUtil {
         return res;
     }
 
-    public static void main(String[] args) throws Exception {
 
-        String type = getFileType("C:/test/eee.WMV");
-        System.out.println("eee.WMV : "+type);
-        System.out.println();
-
-        type = getFileType("C:/test/350996.wav");
-        System.out.println("350996.wav : "+type);
-        System.out.println();
-
-    }
 }

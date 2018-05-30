@@ -1,9 +1,10 @@
 package com.lihb.mywebdavdemo.network;
 
-import com.lihb.mywebdavdemo.network.webdav.MultiStatus;
+import com.lihb.mywebdavdemo.DavResumeModel;
 
 import io.reactivex.Observable;
 import retrofit2.http.HTTP;
+import retrofit2.http.Url;
 
 /**
  * 所有接口集中管理
@@ -18,15 +19,17 @@ public interface IApi {
      */
     int DEFAULT_TIMEOUT = 20000;
     String BASE_IMG_URL = "http://47.52.167.12:25000";
-    String BASE_URL = "http://47.52.167.12:8899/";
+    String BASE_URL = "https://dav.jianguoyun.com/";
 
     /**
      * 首页广告
      *
      * @return
      */
-    @HTTP(method = "PROPFIND", path = "https://dav.jianguoyun.com/dav/", hasBody = false)
-    Observable<MultiStatus> propfind();
+    @HTTP(method = "PROPFIND")
+    Observable<DavResumeModel> propfind(
+            @Url String url
+    );
 
 
 }
