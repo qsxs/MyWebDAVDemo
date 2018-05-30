@@ -3,6 +3,7 @@ package com.lihb.mywebdavdemo.network;
 import com.lihb.mywebdavdemo.DavResumeModel;
 
 import io.reactivex.Observable;
+import okhttp3.ResponseBody;
 import retrofit2.http.HTTP;
 import retrofit2.http.Url;
 
@@ -27,7 +28,7 @@ public interface IApi {
     );
 
     @HTTP(method = "MKCOL")
-    Observable<DavResumeModel> mkol(
+    Observable<ResponseBody> mkol(
             @Url String url
     );
 

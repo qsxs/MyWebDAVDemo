@@ -255,10 +255,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .mkol(tv.getText().toString() + dirName)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new DefaultObserver<DavResumeModel>() {
+                .subscribe(new DefaultObserver<Object>() {
                     @Override
-                    public void onNext(DavResumeModel davResumeModel) {
+                    public void onNext(Object davResumeModel) {
                         Log.i(TAG, "onNext: ");
+
                         propfind(tv.getText().toString());
                     }
 
