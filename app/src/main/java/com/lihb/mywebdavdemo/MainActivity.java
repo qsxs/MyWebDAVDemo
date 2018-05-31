@@ -66,12 +66,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
-                DavResumeModel.ResponsesBean item = adapter.getItem(position);
+                Tb.ResponseBean item = adapter.getItem(position);
                 if (item.isDir()) {
                     propfind(item.getHref());
                 } else {
                     download(item.getHref());
-                    Toast.makeText(MainActivity.this, item.getDisplayname(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, item.getDisplayName(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -79,8 +79,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
-                DavResumeModel.ResponsesBean item = adapter.getItem(position);
-                Toast.makeText(mContext, "准备删除："+item.getDisplayname(), Toast.LENGTH_SHORT).show();
+                Tb.ResponseBean item = adapter.getItem(position);
+                Toast.makeText(mContext, "准备删除：" + item.getDisplayName(), Toast.LENGTH_SHORT).show();
                 delete(item);
                 return true;
             }
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         propfind("/dav/");
     }
 
-    private void delete(DavResumeModel.ResponsesBean item) {
+    private void delete(Tb.ResponseBean item) {
         NetworkManager.getApiService()
                 .delete(item.getHref())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (responseBodyResponse.isSuccessful()) {
                             propfind(tv.getText().toString());
                             Toast.makeText(mContext, "删除成功", Toast.LENGTH_SHORT).show();
-                        }else {
+                        } else {
                             Toast.makeText(mContext, "删除失败", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -206,16 +206,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void propfind(final String path) {
 
+//        NetworkManager.getApiService()
+//                .propfind(path)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeOn(Schedulers.io())
+//                .subscribe(new DefaultObserver<DavResumeModel>() {
+//                    @Override
+//                    public void onNext(DavResumeModel response) {
+//                        Log.i(TAG, "onNext: ");
+//                        tv.setText(path);
+//                        List<DavResumeModel.ResponsesBean> responses = response.getResponses();
+//                        adapter.setNewData(responses.subList(1, responses.size()));
+//                    }
+//
+//                    @Override
+//                    public void onError(Throwable e) {
+//                        Log.i(TAG, "onError: ");
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//                        Log.i(TAG, "onComplete: ");
+//                    }
+//                });
+
         NetworkManager.getApiService()
-                .propfind(path)
+                .propfindx(path)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
-                .subscribe(new DefaultObserver<DavResumeModel>() {
+                .subscribe(new DefaultObserver<Tb>() {
                     @Override
-                    public void onNext(DavResumeModel response) {
-                        Log.i(TAG, "onNext: ");
+                    public void onNext(Tb response) {
+                        Log.i(TAG, "onNext:Tb ");
                         tv.setText(path);
-                        List<DavResumeModel.ResponsesBean> responses = response.getResponses();
+                        List<Tb.ResponseBean> responses = response.getList();
+                        for (Tb.ResponseBean respons : responses) {
+                            long lastModifiedDate = respons.getLastModifiedDate().getTime();
+                            Log.i(TAG, "onNext: " + respons.getDisplayName() + "," + lastModifiedDate);
+                        }
                         adapter.setNewData(responses.subList(1, responses.size()));
                     }
 
@@ -265,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                            @Override
 //                            public void run() {
 //                                tv.setText(path);
-//                                List<DavResumeModel.ResponsesBean> responses = davResumeModel.getResponses();
+//                                List<Tb.ResponseBean> responses = davResumeModel.getResponses();
 //                                adapter.setNewData(responses.subList(1, responses.size()));
 //                            }
 //                        });

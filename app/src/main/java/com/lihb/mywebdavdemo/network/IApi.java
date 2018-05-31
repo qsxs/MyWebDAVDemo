@@ -1,6 +1,7 @@
 package com.lihb.mywebdavdemo.network;
 
 import com.lihb.mywebdavdemo.DavResumeModel;
+import com.lihb.mywebdavdemo.Tb;
 
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
@@ -26,6 +27,11 @@ public interface IApi {
 
     @HTTP(method = "PROPFIND")
     Observable<DavResumeModel> propfind(
+            @Url String url
+    );
+
+    @HTTP(method = "PROPFIND")
+    Observable<Tb> propfindx(
             @Url String url
     );
 

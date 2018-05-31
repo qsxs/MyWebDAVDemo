@@ -23,6 +23,7 @@ import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 
 /**
  * 请求网络类
@@ -63,6 +64,7 @@ public class NetworkManager {
                 .client(okHttpClient)
 //                .addConverterFactory(GsonConverterFactory.create(gson))
                 .addConverterFactory(WebDavConverterFactory.create())
+                .addConverterFactory(SimpleXmlConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(IApi.BASE_URL)
                 .build();

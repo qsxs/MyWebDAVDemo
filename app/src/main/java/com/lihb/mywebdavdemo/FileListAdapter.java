@@ -3,18 +3,17 @@ package com.lihb.mywebdavdemo;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
-public class FileListAdapter extends BaseQuickAdapter<DavResumeModel.ResponsesBean, BaseViewHolder> {
+public class FileListAdapter extends BaseQuickAdapter<Tb.ResponseBean, BaseViewHolder> {
 
     public FileListAdapter() {
         super(R.layout.item_file_list);
     }
 
     @Override
-    protected void convert(BaseViewHolder helper, DavResumeModel.ResponsesBean item) {
-        helper.setText(R.id.tv_name, item.getDisplayname())
-                .setText(R.id.tv_size, item.getcontentlength);
-        String getcontenttype = item.getGetcontenttype();
-        if ("httpd/unix-directory".equals(getcontenttype)) {
+    protected void convert(BaseViewHolder helper, Tb.ResponseBean item) {
+        helper.setText(R.id.tv_name, item.getDisplayName())
+                .setText(R.id.tv_size, item.getContentLength());
+        if (item.isDir()) {
             helper.setText(R.id.tv_type, "夹");
         } else {
             helper.setText(R.id.tv_type, "");
