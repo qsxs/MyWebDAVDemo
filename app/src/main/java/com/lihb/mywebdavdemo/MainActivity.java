@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public boolean onItemLongClick(BaseQuickAdapter baseQuickAdapter, View view, int position) {
                 Tb.ResponseBean item = adapter.getItem(position);
-                Toast.makeText(mContext, "准备删除：" + item.getDisplayName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "删除：" + item.getDisplayName(), Toast.LENGTH_SHORT).show();
                 delete(item);
                 return true;
             }
